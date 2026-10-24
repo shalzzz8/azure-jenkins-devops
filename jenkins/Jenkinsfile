@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+
+    environment {
+        // Configurable via Jenkins Build Parameters or Global Credentials
+        AZURE_VM_IP        = credentials('AZURE_VM_PUBLIC_IP') // Or set static IP e.g., '20.x.x.x'
+        AZURE_USER         = 'azureuser'
+        SSH_CREDENTIAL_ID  = 'azure-vm-ssh-key' // ID of Jenkins SSH Key Credential
+        APP_NAME           = 'devops-cicd-app'
+        APP_PORT           = '80'
+    }
+
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timestamps()
+    }
+
+    stages {
+        stage('Checkout Source') {
+            steps {
+                echo "📥 Checking out latest source code from Git repository..."
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies & Run Tests') {
+            steps {
+                echo "🧪 Running unit tests & linting..."
+                dir('app') {
+                    sh '''
+                        echo "Node Version: $(node -v || true)"
+                        echo "NPM Version: $(npm -v || true)"
+                        npm install
+                        npm test
+                    '''
+                }
+            }
+        }
+
+        stage('Package Application') {
+            steps {
+                echo "📦 Packaging application files..."
+                sh '''
+                    tar -czf app-package.tar.gz -C app .
+                    ls -lh app-package.tar.gz
+                '''
+            }
+        }
+
+        stage('Deploy to Azure VM') {
+            steps {
+                echo "🚀 Deploying application to Azure VM at ${AZURE_VM_IP}..."
+                sshagent([SSH_CREDENTIAL_ID]) {
+                    sh '''
+                        # Ensure host key is accepted safely
+                        ssh-keyscan -H ${AZURE_VM_IP} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+                        # 1. Copy package and deployment script to Azure VM
+                        scp -o StrictHostKeyChecking=no app-package.tar.gz ${AZURE_USER}@${AZURE_VM_IP}:/home/${AZURE_USER}/
+                        scp -o StrictHostKeyChecking=no jenkins/deploy.sh ${AZURE_USER}@${AZURE_VM_IP}:/home/${AZURE_USER}/
+
+                        # 2. Execute automated deployment on Azure VM
+                        ssh -o StrictHostKeyChecking=no ${AZURE_USER}@${AZURE_VM_IP} "bash /home/${AZURE_USER}/deploy.sh"
+                    '''
+                }
+            }
+        }
+
+        stage('Smoke Test & Health Probe') {
+            steps {
+                echo "🏥 Verifying live deployment on Azure VM..."
+                sh '''
+                    echo "Pinging http://${AZURE_VM_IP}/health..."
+                    curl --retry 5 --retry-delay 4 --retry-connrefused -f http://${AZURE_VM_IP}/health || exit 1
+                    echo ""
+                    echo "✅ Smoke test passed! Application is live and responding."
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "=========================================================="
+            echo "🎉 Continuous Deployment Succeeded!"
+            echo "🌍 View live app at: http://${AZURE_VM_IP}"
+            echo "=========================================================="
+        }
+        failure {
+            echo "❌ Pipeline failed! Please review the console logs above."
+        }
+    }
+}

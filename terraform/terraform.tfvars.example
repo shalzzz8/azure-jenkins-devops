@@ -1,0 +1,12 @@
+# Azure Resource Configuration
+resource_group_name = "rg-devops-cicd-prod"
+location            = "eastus"
+environment         = "production"
+
+# VM Configuration
+vm_size        = "Standard_B1s"
+admin_username = "azureuser"
+
+# Provide either the direct public key string or the local path to your id_rsa.pub
+# ssh_public_key      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB..."
+ssh_public_key_path = "~/.ssh/id_rsa.pub"

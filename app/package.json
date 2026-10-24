@@ -1,0 +1,22 @@
+{
+  "name": "azure-devops-cicd-app",
+  "version": "1.0.0",
+  "description": "Production CI/CD Sample App for Azure and Jenkins",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/server.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "keywords": [
+    "azure",
+    "jenkins",
+    "terraform",
+    "devops",
+    "cicd"
+  ],
+  "author": "DevOps Engineer",
+  "license": "MIT"
+}

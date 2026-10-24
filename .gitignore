@@ -1,0 +1,39 @@
+# Terraform ignores
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!terraform.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Node / Application
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.production
+
+# Pipeline Artifacts & Archives
+*.tar.gz
+*.zip
+dist/
+build/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# SSH Keys
+id_rsa
+id_rsa.pub
+*.pem

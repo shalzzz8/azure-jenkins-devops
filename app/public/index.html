@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure DevOps CI/CD Portal</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background-glow"></div>
+  <div class="container">
+    <header class="header">
+      <div class="logo-area">
+        <span class="logo-icon">🚀</span>
+        <div>
+          <h1>DevOps CI/CD Showcase</h1>
+          <p class="subtitle">Terraform • Microsoft Azure • Jenkins • GitHub</p>
+        </div>
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span id="system-status">Healthy (Live)</span>
+      </div>
+    </header>
+
+    <main class="grid-main">
+      <!-- Card: Deployment Overview -->
+      <section class="card">
+        <div class="card-header">
+          <h2>📦 Deployment Status</h2>
+          <span class="badge badge-azure">Azure VM</span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">App Version</span>
+            <span class="value" id="val-version">1.0.0</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Cloud Host</span>
+            <span class="value">Microsoft Azure (Ubuntu)</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Host / Container</span>
+            <span class="value mono" id="val-hostname">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Uptime</span>
+            <span class="value" id="val-uptime">0s</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card: Pipeline Architecture -->
+      <section class="card">
+        <div class="card-header">
+          <h2>⚡ Automated Pipeline Stages</h2>
+          <span class="badge badge-jenkins">Jenkins CI/CD</span>
+        </div>
+        <div class="pipeline-flow">
+          <div class="pipeline-step completed">
+            <div class="step-num">1</div>
+            <div class="step-label">Git Push</div>
+            <div class="step-desc">GitHub Repository</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step completed">
+            <div class="step-num">2</div>
+            <div class="step-label">Webhook Trigger</div>
+            <div class="step-desc">Automated build</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step completed">
+            <div class="step-num">3</div>
+            <div class="step-label">CI Test & Build</div>
+            <div class="step-desc">npm test & Docker</div>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-step completed">
+            <div class="step-num">4</div>
+            <div class="step-label">Azure Deploy</div>
+            <div class="step-desc">Live production</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card: Live API Health & Telemetry -->
+      <section class="card full-width">
+        <div class="card-header">
+          <h2>📊 System Telemetry & Health Probe</h2>
+          <button class="btn-refresh" id="btn-refresh" onclick="fetchTelemetry()">Refresh Data ↻</button>
+        </div>
+        <div class="telemetry-box">
+          <pre><code id="telemetry-json">Fetching telemetry from /api/info...</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Automated Infrastructure provisioned with <strong>Terraform</strong> | Pipeline powered by <strong>Jenkins</strong> | Hosted on <strong>Azure</strong></p>
+    </footer>
+  </div>
+
+  <script>
+    async function fetchTelemetry() {
+      const btn = document.getElementById('btn-refresh');
+      btn.innerText = 'Refreshing...';
+      try {
+        const res = await fetch('/api/info');
+        const data = await res.json();
+        document.getElementById('val-version').textContent = data.version;
+        document.getElementById('val-hostname').textContent = data.system.hostname;
+        document.getElementById('val-uptime').textContent = data.uptimeSeconds + 's';
+        document.getElementById('telemetry-json').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('telemetry-json').textContent = 'Error connecting to API: ' + err.message;
+      } finally {
+        btn.innerText = 'Refresh Data ↻';
+      }
+    }
+    fetchTelemetry();
+    setInterval(fetchTelemetry, 15000);
+  </script>
+</body>
+</html>
