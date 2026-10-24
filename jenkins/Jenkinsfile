@@ -64,7 +64,10 @@ pipeline {
                 echo "🏥 Verifying live deployment on Azure VM..."
                 sh '''
                     sleep 3
-                    curl --retry 5 --retry-delay 3 -f http://localhost:${APP_PORT}/health
+                    # Inspect container internal IP to verify health from within Docker
+                    APP_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${APP_NAME})
+                    echo "Checking health at http://${APP_IP}:3000/health..."
+                    curl --retry 5 --retry-delay 3 -f http://${APP_IP}:3000/health
                     echo ""
                     echo "✅ Smoke test passed! Application is live and healthy."
                 '''
@@ -76,7 +79,7 @@ pipeline {
         success {
             echo "=========================================================="
             echo "🎉 Continuous Deployment Succeeded!"
-            echo "🌍 Live App is accessible on Azure at Port 80!"
+            echo "🌍 View live app at: http://9.205.24.219"
             echo "=========================================================="
         }
         failure {
